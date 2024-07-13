@@ -1,15 +1,10 @@
 package backend
 
 import (
-	"bytes"
-	"log"
 	"log/slog"
-	"net"
-	"net/mail"
 	"os"
 
 	"github.com/kartverket/skyline/pkg/config"
-	"github.com/kartverket/skyline/pkg/email"
 	skysender "github.com/kartverket/skyline/pkg/sender"
 )
 
@@ -17,14 +12,6 @@ import (
 type Backend struct {
 	Sender    skysender.Sender
 	BasicAuth *config.BasicAuthConfig
-}
-
-func forwardToMicrosoft(origin net.Addr, from string, to []string, data []byte) (email.SkylineEmail, error) {
-	msg, _ := mail.ReadMessage(bytes.NewReader(data))
-	subject := msg.Header.Get("Subject")
-	log.Printf("Received mail from %s for %s with subject %s", from, to[0], subject)
-	//PUSH TO Send in Office365.go
-	return email.SkylineEmail{}, nil
 }
 
 func NewBackend(cfg *config.SkylineConfig) *Backend {

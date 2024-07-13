@@ -1,9 +1,10 @@
 package email
 
 import (
+	"io"
+
 	"github.com/mnako/letters"
 	"github.com/pkg/errors"
-	"io"
 )
 
 type SkylineEmail struct {

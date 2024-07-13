@@ -5,11 +5,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"net"
 	"net/http"
-	"net/mail"
 	"os"
 	"os/signal"
 	"strconv"
@@ -21,6 +19,7 @@ import (
 	"github.com/emersion/go-smtp"
 	skybackend "github.com/kartverket/skyline/pkg/backend"
 	"github.com/kartverket/skyline/pkg/config"
+	"github.com/kartverket/skyline/pkg/email"
 	"github.com/kartverket/skyline/pkg/smtpd"
 	logutils "github.com/kartverket/skyline/pkg/util/log"
 	"github.com/pkg/errors"
@@ -47,9 +46,8 @@ func init() {
 
 // TODO: This is the part that calls Office365 - probably some re-engineering is needed in this function.
 func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
-	msg, _ := mail.ReadMessage(bytes.NewReader(data))
-	subject := msg.Header.Get("Subject")
-	log.Printf("Received mail from %s for %s with subject %s", from, to[0], subject)
+	x, y := email.Parse(bytes.NewReader(data))
+
 	return nil
 }
 
