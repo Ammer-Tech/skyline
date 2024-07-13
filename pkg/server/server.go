@@ -35,9 +35,10 @@ type SkylineServer struct {
 }
 
 var (
-	ctx         context.Context
-	stop        context.CancelFunc
-	gracePeriod = 30 * time.Second
+	ctx          context.Context
+	stop         context.CancelFunc
+	gracePeriod  = 30 * time.Second
+	globalConfig config.SkylineConfig
 )
 
 func init() {
@@ -52,7 +53,7 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
 }
 
 func authHandler(remoteAddr net.Addr, mechanism string, username []byte, password []byte, shared []byte) (bool, error) {
-	if string(username[:]) == "A" && string(password[:]) == "B" {
+	if string(username[:]) == globalConfig.BasicAuthConfig.Username && string(password[:]) == globalConfig.BasicAuthConfig.Password {
 		return true, nil
 	}
 	return false, nil
@@ -60,6 +61,7 @@ func authHandler(remoteAddr net.Addr, mechanism string, username []byte, passwor
 
 func NewServer(cfg *config.SkylineConfig) *SkylineServer {
 	//Basically the handler here will be a fat function which calls the office365 piece and sends the mail.
+	globalConfig = *cfg
 	addr := cfg.Hostname + ":" + strconv.FormatUint(uint64(cfg.Port), 10)
 	appname := "skyline"
 	hostname := cfg.Hostname
