@@ -3,6 +3,10 @@ package sender
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"net/mail"
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/kartverket/skyline/pkg/email"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
@@ -10,9 +14,6 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	graphusers "github.com/microsoftgraph/msgraph-sdk-go/users"
 	"github.com/pkg/errors"
-	"log/slog"
-	"net/mail"
-	"strings"
 )
 
 type office365sender struct {

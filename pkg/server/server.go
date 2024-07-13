@@ -3,12 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/emersion/go-smtp"
-	skybackend "github.com/kartverket/skyline/pkg/backend"
-	"github.com/kartverket/skyline/pkg/config"
-	logutils "github.com/kartverket/skyline/pkg/util/log"
-	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io"
 	"log/slog"
 	"net/http"
@@ -18,11 +12,18 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"github.com/emersion/go-smtp"
+	skybackend "github.com/kartverket/skyline/pkg/backend"
+	"github.com/kartverket/skyline/pkg/config"
+	logutils "github.com/kartverket/skyline/pkg/util/log"
+	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// Replacing this with smptd.
 type SkylineServer struct {
 	ctx     context.Context
-	smtp    *smtp.Server
+	smtpd   *smtp.Server
 	metrics *http.Server
 }
 
@@ -37,25 +38,12 @@ func init() {
 }
 
 func NewServer(cfg *config.SkylineConfig) *SkylineServer {
-	backend := skybackend.NewBackend(cfg)
-
-	server := smtp.NewServer(backend)
-
-	server.Addr = fmt.Sprintf(":%d", cfg.Port)
-	server.Domain = cfg.Hostname
-	server.ReadTimeout = 10 * time.Second
-	server.WriteTimeout = 10 * time.Second
-	server.MaxMessageBytes = 1024 * 1024
-	server.MaxRecipients = 50
-	server.AllowInsecureAuth = true
-	server.ErrorLog = logAdapter(ctx)
-
-	if cfg.Debug {
-		server.Debug = ioWriterAdapter(ctx)
-	}
+	//Basically the handler here will be a fat function which calls the office365 piece and sends the mail.
+	server := server.ListenAndServeTLS(cfg.Port,cfg.SSLCertFile, cfg.SSLPrivateKeyFile, handler Handler,"skyline", cfg.SSLPrivateKeyFile)
+	backend := skybackend.NewBackend(cfg, *server)
 
 	return &SkylineServer{
-		smtp:    server,
+		smtpd:   server,
 		ctx:     ctx,
 		metrics: metricsServer(cfg.MetricsPort),
 	}

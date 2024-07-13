@@ -30,11 +30,13 @@ type MsGraphConfig struct {
 }
 
 type SkylineConfig struct {
-	Hostname        string           `mapstructure:"hostname"`
-	Port            uint             `mapstructure:"port"`
-	Debug           bool             `mapstructure:"debug"`
-	MetricsPort     uint             `mapstructure:"metrics-port"`
-	SenderType      SenderType       `mapstructure:"sender-type"`
-	MsGraphConfig   *MsGraphConfig   `mapstructure:"ms-graph-config"`
-	BasicAuthConfig *BasicAuthConfig `mapstructure:"basic-auth-config"`
+	Hostname          string           `mapstructure:"hostname"`
+	Port              uint             `mapstructure:"port"`
+	Debug             bool             `mapstructure:"debug"`
+	MetricsPort       uint             `mapstructure:"metrics-port"`
+	SenderType        SenderType       `mapstructure:"sender-type"`
+	MsGraphConfig     *MsGraphConfig   `mapstructure:"ms-graph-config"`
+	BasicAuthConfig   *BasicAuthConfig `mapstructure:"basic-auth-config"`
+	SSLCertFile       string           `mapstructure:"ssl-cert-file"`
+	SSLPrivateKeyFile string           `mapstructure:"ssl-private-key-file"`
 }

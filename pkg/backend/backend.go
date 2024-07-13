@@ -1,40 +1,39 @@
 package backend
 
 import (
-	"context"
-	"github.com/emersion/go-smtp"
-	"github.com/google/uuid"
-	"github.com/kartverket/skyline/pkg/config"
-	skysender "github.com/kartverket/skyline/pkg/sender"
+	"bytes"
+	"log"
 	"log/slog"
+	"net"
+	"net/mail"
 	"os"
+
+	"github.com/kartverket/skyline/pkg/config"
+	"github.com/kartverket/skyline/pkg/email"
+	skysender "github.com/kartverket/skyline/pkg/sender"
+	"github.com/kartverket/skyline/pkg/smtpd"
 )
 
 // The Backend implements SMTP server methods.
 type Backend struct {
 	Sender    skysender.Sender
 	BasicAuth *config.BasicAuthConfig
+	Server    *smtpd.Server
 }
 
-func NewBackend(cfg *config.SkylineConfig) *Backend {
+func forwardToMicrosoft(origin net.Addr, from string, to []string, data []byte) (email.SkylineEmail, error) {
+	msg, _ := mail.ReadMessage(bytes.NewReader(data))
+	subject := msg.Header.Get("Subject")
+	log.Printf("Received mail from %s for %s with subject %s", from, to[0], subject)
+	//PUSH TO Send in Office365.go
+	return email.SkylineEmail{}, nil
+}
+
+func NewBackend(cfg *config.SkylineConfig, server *smtpd.Server) *Backend {
 	return &Backend{
 		Sender:    createSender(cfg),
 		BasicAuth: cfg.BasicAuthConfig,
 	}
-}
-
-func (b *Backend) NewSession(_ *smtp.Conn) (smtp.Session, error) {
-	// TODO: Plug in OpenTelemetry
-	u, _ := uuid.NewUUID()
-	ctx := context.WithValue(context.Background(), "trace-id", u.String())
-	logger := slog.Default().With("trace-id", u.String())
-
-	return &Session{
-		ctx:       ctx,
-		log:       logger,
-		sender:    b.Sender,
-		basicAuth: b.BasicAuth,
-	}, nil
 }
 
 func createSender(cfg *config.SkylineConfig) skysender.Sender {
