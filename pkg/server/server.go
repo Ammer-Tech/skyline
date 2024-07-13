@@ -28,9 +28,10 @@ import (
 
 // Replacing this with smptd.
 type SkylineServer struct {
-	ctx        context.Context
-	metrics    *http.Server
-	mailServer *smtpd.Server
+	ctx          context.Context
+	metrics      *http.Server
+	mailServer   *smtpd.Server
+	proxyBackend *skybackend.Backend
 }
 
 var (
@@ -38,6 +39,7 @@ var (
 	stop         context.CancelFunc
 	gracePeriod  = 30 * time.Second
 	globalConfig config.SkylineConfig
+	proxyBackend *skybackend.Backend
 )
 
 func init() {
@@ -47,7 +49,9 @@ func init() {
 // TODO: This is the part that calls Office365 - probably some re-engineering is needed in this function.
 func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
 	x, y := email.Parse(bytes.NewReader(data))
-
+	if y == nil {
+		proxyBackend.Sender.Send(ctx, x)
+	}
 	return nil
 }
 
@@ -70,12 +74,13 @@ func NewServer(cfg *config.SkylineConfig) *SkylineServer {
 	if cfg.SSLEnabled == true {
 		srv.ConfigureTLS(cfg.SSLCertFile, cfg.SSLPrivateKeyFile)
 	}
-	skybackend.NewBackend(cfg)
+	proxyBackend := skybackend.NewBackend(cfg)
 
 	return &SkylineServer{
-		ctx:        ctx,
-		metrics:    metricsServer(cfg.MetricsPort),
-		mailServer: &srv,
+		ctx:          ctx,
+		metrics:      metricsServer(cfg.MetricsPort),
+		mailServer:   &srv,
+		proxyBackend: proxyBackend,
 	}
 }
 
