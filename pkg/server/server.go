@@ -52,7 +52,10 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
 }
 
 func authHandler(remoteAddr net.Addr, mechanism string, username []byte, password []byte, shared []byte) (bool, error) {
-	return true, nil
+	if string(username[:]) == "A" && string(password[:]) == "B" {
+		return true, nil
+	}
+	return false, nil
 }
 
 func NewServer(cfg *config.SkylineConfig) *SkylineServer {
