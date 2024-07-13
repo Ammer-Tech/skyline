@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -24,9 +25,9 @@ import (
 
 // Replacing this with smptd.
 type SkylineServer struct {
-	ctx     context.Context
-	smtpd   *smtpd.Server
-	metrics *http.Server
+	ctx        context.Context
+	metrics    *http.Server
+	mailServer *smtpd.Server
 }
 
 var (
@@ -41,12 +42,20 @@ func init() {
 
 func NewServer(cfg *config.SkylineConfig) *SkylineServer {
 	//Basically the handler here will be a fat function which calls the office365 piece and sends the mail.
-	smtpd.ListenAndServeTLS(cfg.Port, cfg.SSLCertFile, cfg.SSLPrivateKeyFile, nilfunc, "skyline", cfg.Hostname)
+	addr := cfg.Hostname + ":" + strconv.FormatUint(uint64(cfg.Port), 10)
+	handler := nil
+	appname := "skyline"
+	hostname := cfg.Hostname
+	srv := smtpd.Server{Addr: addr, Handler: handler, Appname: appname, Hostname: hostname}
+	if cfg.SSLEnabled == true {
+		srv.ConfigureTLS(cfg.SSLCertFile, cfg.SSLPrivateKeyFile)
+	}
 	skybackend.NewBackend(cfg)
 
 	return &SkylineServer{
-		ctx:     ctx,
-		metrics: metricsServer(cfg.MetricsPort),
+		ctx:        ctx,
+		metrics:    metricsServer(cfg.MetricsPort),
+		mailServer: &srv,
 	}
 }
 
@@ -64,8 +73,8 @@ func (s *SkylineServer) Serve() {
 	defer stop()
 
 	go func() {
-		slog.Info("Starting SkylineServer at " + s.smtp.Addr)
-		if err := s.smtp.ListenAndServe(); err != nil {
+		slog.Info("Starting SkylineServer at " + s.mailServer.Addr)
+		if err := s.mailServer.ListenAndServe(); err != nil {
 			slog.Error("could not start SMTP server", "error", err)
 			os.Exit(1)
 		}
@@ -90,7 +99,7 @@ func (s *SkylineServer) Serve() {
 		go func() {
 			defer wg.Done()
 			slog.Info("shutting down SMTP server")
-			err := s.smtp.Shutdown(shutdownCtx)
+			err := s.mailServer.Shutdown(shutdownCtx)
 			if err != nil {
 				slog.Warn("could not shut down SMTP server", "error", err)
 			}

@@ -1,6 +1,8 @@
 module github.com/kartverket/skyline
 
-go 1.19
+go 1.21
+
+toolchain go1.22.5
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
