@@ -1,11 +1,15 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"log/slog"
+	"net"
 	"net/http"
+	"net/mail"
 	"os"
 	"os/signal"
 	"strconv"
@@ -40,13 +44,19 @@ func init() {
 	ctx, stop = signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 }
 
+func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
+	msg, _ := mail.ReadMessage(bytes.NewReader(data))
+	subject := msg.Header.Get("Subject")
+	log.Printf("Received mail from %s for %s with subject %s", from, to[0], subject)
+	return nil
+}
+
 func NewServer(cfg *config.SkylineConfig) *SkylineServer {
 	//Basically the handler here will be a fat function which calls the office365 piece and sends the mail.
 	addr := cfg.Hostname + ":" + strconv.FormatUint(uint64(cfg.Port), 10)
-	handler := nil
 	appname := "skyline"
 	hostname := cfg.Hostname
-	srv := smtpd.Server{Addr: addr, Handler: handler, Appname: appname, Hostname: hostname}
+	srv := smtpd.Server{Addr: addr, Handler: mailHandler, Appname: appname, Hostname: hostname}
 	if cfg.SSLEnabled == true {
 		srv.ConfigureTLS(cfg.SSLCertFile, cfg.SSLPrivateKeyFile)
 	}
