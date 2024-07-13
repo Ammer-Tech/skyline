@@ -51,12 +51,17 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
 	return nil
 }
 
+func authHandler(remoteAddr net.Addr, mechanism string, username []byte, password []byte, shared []byte) (bool, error) {
+	return true, nil
+}
+
 func NewServer(cfg *config.SkylineConfig) *SkylineServer {
 	//Basically the handler here will be a fat function which calls the office365 piece and sends the mail.
 	addr := cfg.Hostname + ":" + strconv.FormatUint(uint64(cfg.Port), 10)
 	appname := "skyline"
 	hostname := cfg.Hostname
-	srv := smtpd.Server{Addr: addr, Handler: mailHandler, Appname: appname, Hostname: hostname}
+	srv := smtpd.Server{Addr: addr, Handler: mailHandler, Appname: appname, Hostname: hostname,
+		AuthHandler: authHandler, AuthRequired: true}
 	if cfg.SSLEnabled == true {
 		srv.ConfigureTLS(cfg.SSLCertFile, cfg.SSLPrivateKeyFile)
 	}
