@@ -11,14 +11,12 @@ import (
 	"github.com/kartverket/skyline/pkg/config"
 	"github.com/kartverket/skyline/pkg/email"
 	skysender "github.com/kartverket/skyline/pkg/sender"
-	"github.com/kartverket/skyline/pkg/smtpd"
 )
 
 // The Backend implements SMTP server methods.
 type Backend struct {
 	Sender    skysender.Sender
 	BasicAuth *config.BasicAuthConfig
-	Server    *smtpd.Server
 }
 
 func forwardToMicrosoft(origin net.Addr, from string, to []string, data []byte) (email.SkylineEmail, error) {
@@ -29,7 +27,7 @@ func forwardToMicrosoft(origin net.Addr, from string, to []string, data []byte) 
 	return email.SkylineEmail{}, nil
 }
 
-func NewBackend(cfg *config.SkylineConfig, server *smtpd.Server) *Backend {
+func NewBackend(cfg *config.SkylineConfig) *Backend {
 	return &Backend{
 		Sender:    createSender(cfg),
 		BasicAuth: cfg.BasicAuthConfig,

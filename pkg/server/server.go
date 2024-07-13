@@ -12,9 +12,11 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
 	"github.com/emersion/go-smtp"
 	skybackend "github.com/kartverket/skyline/pkg/backend"
 	"github.com/kartverket/skyline/pkg/config"
+	"github.com/kartverket/skyline/pkg/smtpd"
 	logutils "github.com/kartverket/skyline/pkg/util/log"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -23,7 +25,7 @@ import (
 // Replacing this with smptd.
 type SkylineServer struct {
 	ctx     context.Context
-	smtpd   *smtp.Server
+	smtpd   *smtpd.Server
 	metrics *http.Server
 }
 
@@ -39,11 +41,10 @@ func init() {
 
 func NewServer(cfg *config.SkylineConfig) *SkylineServer {
 	//Basically the handler here will be a fat function which calls the office365 piece and sends the mail.
-	server := server.ListenAndServeTLS(cfg.Port,cfg.SSLCertFile, cfg.SSLPrivateKeyFile, handler Handler,"skyline", cfg.SSLPrivateKeyFile)
-	backend := skybackend.NewBackend(cfg, *server)
+	smtpd.ListenAndServeTLS(cfg.Port, cfg.SSLCertFile, cfg.SSLPrivateKeyFile, nilfunc, "skyline", cfg.Hostname)
+	skybackend.NewBackend(cfg)
 
 	return &SkylineServer{
-		smtpd:   server,
 		ctx:     ctx,
 		metrics: metricsServer(cfg.MetricsPort),
 	}

@@ -39,4 +39,5 @@ type SkylineConfig struct {
 	BasicAuthConfig   *BasicAuthConfig `mapstructure:"basic-auth-config"`
 	SSLCertFile       string           `mapstructure:"ssl-cert-file"`
 	SSLPrivateKeyFile string           `mapstructure:"ssl-private-key-file"`
+	SSLEnabled        bool             `mapstructure:"ssl-enabled"`
 }
