@@ -6,7 +6,7 @@ toolchain go1.22.5
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
-	github.com/emersion/go-smtp v0.21.2
+	github.com/emersion/go-smtp v0.21.3
 	github.com/microsoftgraph/msgraph-sdk-go v1.45.0
 	github.com/mnako/letters v0.2.2
 	github.com/onsi/ginkgo/v2 v2.19.0
