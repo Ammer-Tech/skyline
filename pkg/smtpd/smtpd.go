@@ -504,6 +504,7 @@ loop:
 					if checkErrFormat.MatchString(err.Error()) {
 						s.writef(err.Error())
 					} else {
+						s.writef(err.Error())
 						s.writef("451 4.3.5 Unable to process mail")
 					}
 					break
@@ -516,6 +517,7 @@ loop:
 					if checkErrFormat.MatchString(err.Error()) {
 						s.writef(err.Error())
 					} else {
+						s.writef(err.Error())
 						s.writef("451 4.3.5 Unable to process mail")
 					}
 					break
