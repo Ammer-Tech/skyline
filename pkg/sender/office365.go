@@ -67,21 +67,22 @@ func mapToGraphMail(email *email.SkylineEmail) (*graphusers.ItemSendmailSendMail
 	message.SetSentDateTime(&email.Headers.Date)
 
 	// TODO: Attachments
+	message.SetAttachments(toGraphAttachment(email))
 	// TODO: IDs
-
 	// Body
 	body := graphmodels.NewItemBody()
 	if email.IsPlaintext() {
 		contentType := graphmodels.TEXT_BODYTYPE
 		body.SetContentType(&contentType)
 		body.SetContent(&email.Text)
-	} else if email.IsHTML() || email.IsMultiPartAlternative() {
+	} else if email.IsHTML() || email.IsMultiPartAlternative() || email.Headers.ContentType.ContentType == "multipart/mixed" {
 		contentType := graphmodels.HTML_BODYTYPE
 		body.SetContentType(&contentType)
 		body.SetContent(&email.HTML)
 	} else {
 		return nil, errors.New("unsupported content type: " + email.Headers.ContentType.ContentType)
 	}
+
 	message.SetBody(body)
 
 	requestBody.SetMessage(message)
@@ -89,6 +90,19 @@ func mapToGraphMail(email *email.SkylineEmail) (*graphusers.ItemSendmailSendMail
 	requestBody.SetSaveToSentItems(&saveToSentItems)
 
 	return requestBody, nil
+}
+
+func toGraphAttachment(mail *email.SkylineEmail) []graphmodels.Attachmentable {
+	var result = make([]graphmodels.Attachmentable, 0)
+	for _, r := range mail.AttachedFiles {
+		x := graphmodels.NewFileAttachment()
+		x.SetContentBytes(r.Data)
+		strPointerValue := r.ContentDisposition.Params["filename"]
+		x.SetName(&(strPointerValue))
+		result = append(result, x)
+	}
+	return result
+
 }
 
 func toGraphRecipient(addresses ...*mail.Address) []graphmodels.Recipientable {
